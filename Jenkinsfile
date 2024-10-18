@@ -1,5 +1,3 @@
-def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
-
 pipeline {
   agent {
     kubernetes {
@@ -26,6 +24,8 @@ spec:
     stage('pull') {
       steps {
         script {
+            def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
+            echo "branch: $branch"
             def pwd = pwd()
             container('alpine') {
                 echo "rsync with: $pwd"
