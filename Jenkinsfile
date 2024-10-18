@@ -2,7 +2,7 @@ def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
 def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 
 pipeline {  
-  agent any
+  agent node
   stages {
     stage('pull') {
       agent {
@@ -17,7 +17,7 @@ spec:
       image: alpine:3.19.1
       tty: true
       volumeMounts:
-        - mountPath: "/sites/"
+        - mountPath: /sites/
           name: sites
 volumes:
 - name: sites
