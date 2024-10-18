@@ -26,14 +26,16 @@ spec:
   stages {
     stage('pull') {
       steps {
-        def pwd = pwd()
-        sh "$pwd"
+        script {
+            def pwd = pwd()
+            sh "$pwd"
 
-        container('alpine') {
-            sh "cd /sites && pwd && ls -l"
-            echo "Pulling changes from branch: ${branch}"
-            
-            sh "cd /sites && pwd && ls -l"
+            container('alpine') {
+                sh "cd /sites && pwd && ls -l"
+                echo "Pulling changes from branch: ${branch}"
+                
+                sh "cd /sites && pwd && ls -l"
+            }
         }
       }
     }
