@@ -1,5 +1,4 @@
 def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
-def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 
 pipeline {
   agent {
@@ -31,6 +30,7 @@ spec:
             container('alpine') {
                 echo "rsync with: $pwd"
                 sh """
+                    [[ "$branch" == "main" || "$branch" == "master" ]] && branchPath="www" || branchPath=$branch
                     if [ ! -d /sites/$branchPath ]; then
                         mkdir -p /sites/$branchPath
                     fi
