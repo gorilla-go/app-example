@@ -28,13 +28,9 @@ spec:
       steps {
         script {
             def pwd = pwd()
-            sh "$pwd"
 
             container('alpine') {
-                sh "cd /sites && pwd && ls -l"
-                echo "Pulling changes from branch: ${branch}"
-                
-                sh "cd /sites && pwd && ls -l"
+                echo "rsync with: $pwd"
             }
         }
       }
