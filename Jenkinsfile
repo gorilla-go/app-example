@@ -34,7 +34,6 @@ spec:
                 mkdir -p $branchPath
             fi
             cd $branchPath
-            git remote add origin ${env.GIT_URL}
             git pull origin $branch
             ls -l
             """
