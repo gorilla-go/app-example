@@ -26,6 +26,7 @@ spec:
   stages {
     stage('pull') {
       steps {
+        sh "cd sites && pwd && ls -l"
         echo "Pulling changes from branch: ${branch}"
         checkout([
             $class: 'GitSCM',
@@ -34,9 +35,10 @@ spec:
                 [url: "${GIT_URL}", credentialsId: 'default']
             ],
             extensions: [
-                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
+                [$class: 'RelativeTargetDirectory', relativeTargetDir: "/sites/${branchPath}"]
             ]
         ])
+        sh "cd sites && pwd && ls -l"
       }
     }
   }
