@@ -21,7 +21,7 @@ spec:
           name: sites
 volumes:
 - name: sites
-    persistentVolumeClaim:
+  persistentVolumeClaim:
     claimName: sites'''
         }
       }
