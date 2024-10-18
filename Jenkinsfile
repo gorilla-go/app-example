@@ -21,11 +21,10 @@ spec:
     }
   }
   stages {
-    stage('pull') {
+    stage('code sync') {
       steps {
         script {
             def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
-            echo "branch: $branch"
             def pwd = pwd()
             container('alpine') {
                 echo "rsync with: $pwd"
@@ -40,8 +39,6 @@ spec:
                     fi
                     apk add --no-cache rsync
                     rsync -av --delete $pwd/ /sites/\$branchPath/
-                    cd /sites/\$branchPath
-                    ls -l
                     """
             }
         }
