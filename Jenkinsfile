@@ -26,19 +26,12 @@ spec:
   stages {
     stage('pull') {
       steps {
+        sh "ls -l"
+
         container('alpine') {
             sh "cd /sites && pwd && ls -l"
             echo "Pulling changes from branch: ${branch}"
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: "*/${branch}"]],
-                userRemoteConfigs: [
-                    [url: "${GIT_URL}", credentialsId: 'default']
-                ],
-                extensions: [
-                    [$class: 'RelativeTargetDirectory', relativeTargetDir: "/sites/${branchPath}"]
-                ]
-            ])
+            
             sh "cd /sites && pwd && ls -l"
         }
       }
