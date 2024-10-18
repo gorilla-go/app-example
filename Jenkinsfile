@@ -34,6 +34,7 @@ spec:
                     if [ ! -d /sites/$branchPath ]; then
                         mkdir -p /sites/$branchPath
                     fi
+                    apk add --no-cache rsync
                     rsync -av --delete $pwd /sites/$branchPath
                     """
             }
