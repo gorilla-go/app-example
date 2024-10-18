@@ -1,10 +1,10 @@
 pipeline {
-  agent any  
+  agent any
   stages {
-    stage('pull') {
+    stage('pull code') {
       agent {
         kubernetes {
-            yaml '''apiVersion: v1
+          yaml '''apiVersion: v1
 kind: Pod
 metadata:
 namespace: yesglasses
