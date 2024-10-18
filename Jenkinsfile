@@ -35,12 +35,12 @@ spec:
                     else
                         branchPath="$branch"
                     fi
-                    if [ ! -d /sites/$branchPath ]; then
-                        mkdir -p /sites/$branchPath
+                    if [ ! -d /sites/\$branchPath ]; then
+                        mkdir -p /sites\$branchPath
                     fi
                     apk add --no-cache rsync
-                    rsync -av --delete $pwd/ /sites/$branchPath/
-                    cd /sites/$branchPath
+                    rsync -av --delete $pwd/ /sites/\$branchPath/
+                    cd /sites/\$branchPath
                     ls -l
                     """
             }
