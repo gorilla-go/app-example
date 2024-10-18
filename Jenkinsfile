@@ -23,20 +23,22 @@ spec:
   stages {
     stage('pull') {
       steps {
-        def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
-        echo "Pulling changes from branch: ${branch}"
+        step {
+            def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
+            echo "Pulling changes from branch: ${branch}"
 
-        def branchPath = (branch == "main" || branch == "master") ? "www" : branch
-        checkout([
-            $class: 'GitSCM',
-            branches: [[name: "*/${branch}"]],
-            userRemoteConfigs: [
-                [url: "${GIT_URL}", credentialsId: 'default']
-            ],
-            extensions: [
-                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
-            ]
-        ])
+            def branchPath = (branch == "main" || branch == "master") ? "www" : branch
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: "*/${branch}"]],
+                userRemoteConfigs: [
+                    [url: "${GIT_URL}", credentialsId: 'default']
+                ],
+                extensions: [
+                    [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
+                ]
+            ])
+        }
       }
     }
   }
