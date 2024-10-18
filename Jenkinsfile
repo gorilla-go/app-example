@@ -35,7 +35,7 @@ spec:
                         mkdir -p /sites/$branchPath
                     fi
                     apk add --no-cache rsync
-                    rsync -av --delete $pwd /sites/$branchPath
+                    rsync -av --delete $pwd/ /sites/$branchPath/
                     cd /sites/$branchPath
                     ls -l
                     """
