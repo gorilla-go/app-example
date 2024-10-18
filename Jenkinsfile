@@ -30,10 +30,12 @@ spec:
             def pwd = pwd()
             container('alpine') {
                 echo "rsync with: $pwd"
-                if [ ! -d "/sites/$branchPath" ]; then
-                    mkdir -p "/sites/$branchPath"
-                fi
-                rsync -av --delete "$pwd" "/sites/$branchPath"
+                sh """
+                    if [ ! -d /sites/$branchPath ]; then
+                        mkdir -p /sites/$branchPath
+                    fi
+                    rsync -av --delete $pwd /sites/$branchPath
+                    """
             }
         }
       }
