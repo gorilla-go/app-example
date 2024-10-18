@@ -38,6 +38,8 @@ spec:
                 [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
             ]
           ])
+
+          sh "cd /sites/$branch && ls -l"
         }
       }
     }
