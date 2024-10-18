@@ -1,5 +1,6 @@
 def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
 def branchPath = (branch == "main" || branch == "master") ? "www" : branch
+def pwd = pwd()
 
 pipeline {
   agent {
@@ -26,7 +27,7 @@ spec:
   stages {
     stage('pull') {
       steps {
-        sh "pwd"
+        sh "$pwd"
 
         container('alpine') {
             sh "cd /sites && pwd && ls -l"
