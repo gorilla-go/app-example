@@ -28,15 +28,16 @@ spec:
           echo "Pulling changes from branch: ${branch}"
 
           def branchPath = (branch == "main" || branch == "master") ? "www" : branch
-
-          sh """
-            if [ ! -d "$branchPath" ]; then
-                mkdir -p $branchPath
-            fi
-            cd $branchPath
-            git pull origin $branch
-            ls -l
-            """
+          checkout([
+            $class: 'GitSCM',
+            branches: [[name: "*/${branch}"]],
+            userRemoteConfigs: [
+                [url: "${GIT_URL}", credentialsId: 'default']
+            ],
+            extensions: [
+                [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
+            ]
+          ])
         }
       }
     }
