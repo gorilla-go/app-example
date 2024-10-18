@@ -1,7 +1,7 @@
 def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
 def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 
-pipeline {  
+pipeline {
   agent {
     kubernetes {
         yaml '''apiVersion: v1
@@ -16,10 +16,11 @@ spec:
       volumeMounts:
         - mountPath: /sites/
           name: sites
-volumes:
-- name: sites
-  persistentVolumeClaim:
-    claimName: sites'''
+  volumes:
+  - name: sites
+    persistentVolumeClaim:
+        claimName: sites
+'''
     }
   }
   stages {
