@@ -1,34 +1,33 @@
 pipeline {
-  agent any
-  stages {
-    stage('pull code') {
-      agent {
-        kubernetes {
-          yaml '''apiVersion: v1
+  agent {
+    kubernetes {
+      yaml '''apiVersion: v1
 kind: Pod
 metadata:
-namespace: yesglasses
+  namespace: yesglasses
 spec:
-containers:
+  containers:
     - name: alpine
-    image: alpine:3.19.1
-    tty: true
-    volumeMounts:
+      image: alpine:3.19.1
+      tty: true
+      volumeMounts:
         - mountPath: "/sites/"
-        name: sites
-volumes:
+          name: sites
+  volumes:
     - name: sites
-    persistentVolumeClaim:
+      persistentVolumeClaim:
         claimName: sites'''
-        }
-      }
+    }
+  }
+  
+  stages {
+    stage('pull') {
       steps {
-        script {
-          def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
-          echo "Pulling changes from branch: ${branch}"
+        def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
+        echo "Pulling changes from branch: ${branch}"
 
-          def branchPath = (branch == "main" || branch == "master") ? "www" : branch
-          checkout([
+        def branchPath = (branch == "main" || branch == "master") ? "www" : branch
+        checkout([
             $class: 'GitSCM',
             branches: [[name: "*/${branch}"]],
             userRemoteConfigs: [
@@ -37,10 +36,7 @@ volumes:
             extensions: [
                 [$class: 'RelativeTargetDirectory', relativeTargetDir: "${branchPath}"]
             ]
-          ])
-
-          sh "cd /sites/$branch && ls -l"
-        }
+        ])
       }
     }
   }
