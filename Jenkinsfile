@@ -4,7 +4,8 @@ def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 pipeline {  
   agent any
   stages {
-    agent {
+    stage('pull') {
+      agent {
         kubernetes {
             yaml '''apiVersion: v1
 kind: Pod
@@ -18,13 +19,12 @@ spec:
       volumeMounts:
         - mountPath: "/sites/"
           name: sites
-  volumes:
-    - name: sites
-      persistentVolumeClaim:
-        claimName: sites'''
+volumes:
+- name: sites
+    persistentVolumeClaim:
+    claimName: sites'''
         }
-    }
-    stage('pull') {
+      }
       steps {
         sh "cd sites && pwd && ls -l"
         echo "Pulling changes from branch: ${branch}"
