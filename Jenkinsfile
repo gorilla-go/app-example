@@ -26,7 +26,7 @@ spec:
   stages {
     stage('pull') {
       steps {
-        sh "ls -l"
+        sh "pwd"
 
         container('alpine') {
             sh "cd /sites && pwd && ls -l"
