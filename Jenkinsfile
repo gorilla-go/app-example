@@ -1,10 +1,12 @@
 def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : "main"
 def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 
-pipeline {
-  agent {
-    kubernetes {
-      yaml '''apiVersion: v1
+pipeline {  
+  agent any
+  stages {
+    agent {
+        kubernetes {
+            yaml '''apiVersion: v1
 kind: Pod
 metadata:
   namespace: yesglasses
@@ -20,10 +22,8 @@ spec:
     - name: sites
       persistentVolumeClaim:
         claimName: sites'''
+        }
     }
-  }
-  
-  stages {
     stage('pull') {
       steps {
         sh "cd sites && pwd && ls -l"
