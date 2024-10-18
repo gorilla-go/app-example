@@ -26,8 +26,9 @@ spec:
         script {
           def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : 'main'
           echo "Pulling changes from branch: ${branch}"
-
-          sh 'printenv'
+          
+          branch = (branch == "main" || branch == "master") ? "www" : branch
+          echo "${branch}"
         }
       }
     }
