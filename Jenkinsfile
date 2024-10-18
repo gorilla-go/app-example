@@ -28,7 +28,17 @@ spec:
           echo "Pulling changes from branch: ${branch}"
           
           branch = (branch == "main" || branch == "master") ? "www" : branch
-          echo "${branch}"
+
+          sh """
+            if [ ! -d "${branch}" ]; then
+                mkdir -p ${branch}
+            fi
+
+            cd ${$branch}
+            git remote add origin ${env.GIT_URL}
+            git pull origin ${branch}
+            ls -l
+            """
         }
       }
     }
