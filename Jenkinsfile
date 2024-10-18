@@ -26,7 +26,7 @@ spec:
   stages {
     stage('pull') {
       steps {
-        sh "cd sites && pwd && ls -l"
+        sh "cd /sites && pwd && ls -l"
         echo "Pulling changes from branch: ${branch}"
         checkout([
             $class: 'GitSCM',
