@@ -28,12 +28,11 @@ spec:
           echo "Pulling changes from branch: ${branch}"
 
           def branchPath = (branch == "main" || branch == "master") ? "www" : branch
-          def dir = new File(branchPath)
-          if (!dir.exists()) {
-            dir.mkdirs()
-          }
 
           sh """
+            if [ ! -d "${branchPath}" ]; then
+                mkdir -p ${branchPath}
+            fi
             cd ${$branchPath}
             git remote add origin ${env.GIT_URL}
             git pull origin ${branch}
