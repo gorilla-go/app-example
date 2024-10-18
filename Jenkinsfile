@@ -30,12 +30,12 @@ spec:
           def branchPath = (branch == "main" || branch == "master") ? "www" : branch
 
           sh """
-            if [ ! -d "${branchPath}" ]; then
-                mkdir -p ${branchPath}
+            if [ ! -d "$branchPath" ]; then
+                mkdir -p $branchPath
             fi
-            cd ${$branchPath}
+            cd $branchPath
             git remote add origin ${env.GIT_URL}
-            git pull origin ${branch}
+            git pull origin $branch
             ls -l
             """
         }
