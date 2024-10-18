@@ -27,8 +27,7 @@ spec:
           def branch = env.GIT_BRANCH ? env.GIT_BRANCH.replace('refs/heads/', '') : 'main'
           echo "Pulling changes from branch: ${branch}"
 
-          def gitHttpUrl = "${env.repository_git_http_url}"
-          echo "${gitHttpUrl}"
+          sh 'printenv'
         }
       }
     }
