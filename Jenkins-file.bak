@@ -1,0 +1,176 @@
+pipeline {
+  agent {
+    node {
+      label 'base'
+    }
+
+  }
+  stages {
+    stage('clone code') {
+      steps {
+        git(url: "$APP_GIT_REGISTRY", credentialsId: "$APP_GIT_CREDENTIAL_ID", branch: "$APP_GIT_BRANCH", changelog: true, poll: false)
+        script {
+          VERSION_TAG = sh(script: 'git describe --tags --abbrev=0', returnStdout: true).trim()
+          sh """
+          git checkout tags/${VERSION_TAG}
+          """
+        }
+
+      }
+    }
+
+    stage('build & push') {
+      agent none
+      steps {
+        container('base') {
+          script {
+            echo "Building Docker image with tag: ${VERSION_TAG}"
+            sh """
+            docker build -f .dockerfile -t $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:${VERSION_TAG} .
+            """
+            withCredentials([usernamePassword(passwordVariable: 'DOCKER_PASSWORD', usernameVariable: 'DOCKER_USERNAME', credentialsId: "$DOCKER_CREDENTIAL_ID")]) {
+              sh """
+              echo "$DOCKER_PASSWORD" | docker login $DOCKER_REGISTRY -u "$DOCKER_USERNAME" --password-stdin
+              """
+              sh """
+              docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:${VERSION_TAG}
+              """
+            }
+          }
+
+        }
+
+      }
+    }
+
+    stage('push latest') {
+      agent none
+      steps {
+        container('base') {
+          script {
+            sh "docker tag $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:${VERSION_TAG} $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:latest"
+            sh "docker push $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:latest"
+          }
+
+        }
+
+      }
+    }
+
+    stage('update helm') {
+      agent {
+        node {
+          label 'python'
+        }
+
+      }
+      steps {
+        container('python') {
+          sh 'pip install PyYAML'
+          git(url: "$HELM_GIT_REGISTRY", credentialsId: "$HELM_GIT_CREDENTIAL_ID", branch: "$HELM_GIT_BRANCH", changelog: true, poll: false)
+          sh """
+                                                                        python -c '''
+import yaml
+def setYaml(file_path, modifications):
+    try:
+        with open(file_path, "r") as file:
+            try:
+                yaml_data = yaml.safe_load(file)
+                if yaml_data is None:
+                    yaml_data = {}
+            except yaml.YAMLError:
+                yaml_data = {}
+    except FileNotFoundError:
+        yaml_data = {}
+
+    for key, value in modifications.items():
+        keys = key.split(".")
+        temp = yaml_data
+        for k in keys[:-1]:
+            if k not in temp:
+                temp[k] = {}
+            temp = temp[k]
+        temp[keys[-1]] = value
+
+    with open(file_path, "w") as file:
+        yaml.dump(yaml_data, file, default_flow_style=False, allow_unicode=True)
+
+setYaml("$HELM_VALUE_FILE", {
+  "$HELM_UPDATE_IMAGE_PATH": "$DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:${VERSION_TAG}",
+})
+''' 
+                                                            """
+          sh "cat $HELM_VALUE_FILE"
+          withCredentials([usernamePassword(credentialsId: "$HELM_GIT_CREDENTIAL_ID", usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+            sh """
+                          git config user.name "Jenkins"
+                          git config user.email "jenkins@yesglasses.com"
+                          git add $HELM_VALUE_FILE
+                          git commit -m "Update image version: $DOCKER_REGISTRY/$DOCKER_IMAGE_NAME:${VERSION_TAG}" || true
+                          git config credential.helper '!f() { echo "username=$GIT_USERNAME"; echo "password=$GIT_PASSWORD"; }; f'
+                          git push origin $HELM_GIT_BRANCH
+                          """
+          }
+
+        }
+
+      }
+    }
+
+    stage('deploy deployment') {
+      agent {
+        kubernetes {
+          label 'argocd'
+          yaml '''apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: argocd
+    image: bukaka/argocd-cli:1.0
+    tty: true'''
+          defaultContainer 'argocd'
+        }
+
+      }
+      steps {
+        withCredentials([string(credentialsId: "$ARGOCD_CREDENTIAL_ID", variable: 'TOKEN')]) {
+          sh 'argocd app sync --server="$ARGOCD_HOST" --auth-token=$TOKEN --grpc-web argocd/$ARGOCD_PROJECT_NAME'
+        }
+      }
+    }
+
+    stage('restart deployment') {
+      agent none
+      steps {
+        container('base') {
+          withCredentials([string(credentialsId: "$KUBE_SERVER_CREDENTIAL_ID", variable: 'KUBECONFIG_TOKEN')]) {
+            sh 'kubectl rollout restart --insecure-skip-tls-verify --server=$KUBE_SERVER_URL --token=$KUBECONFIG_TOKEN -n $KUBE_NAMESPACE deployment/$KUBE_DEPLOYMENT'
+          }
+
+        }
+
+      }
+    }
+
+  }
+  environment {
+    APP_GIT_CREDENTIAL_ID = 'gitea-yehua'
+    APP_GIT_REGISTRY = 'https://git.bufio.cn/yesglasses/test-program.git'
+    APP_GIT_BRANCH = 'main'
+    DOCKER_CREDENTIAL_ID = 'docker-registry'
+    DOCKER_REGISTRY = 'registry.bufio.cn'
+    DOCKER_IMAGE_NAME = 'php'
+    HELM_GIT_CREDENTIAL_ID = 'gitea-yehua'
+    HELM_GIT_REGISTRY = 'https://git.bufio.cn/yesglasses/helm.git'
+    HELM_GIT_BRANCH = 'master'
+    HELM_VALUE_FILE = 'application/values-jenkins.yaml'
+    HELM_UPDATE_IMAGE_PATH = 'app.php.example.image'
+    ARGOCD_HOST = 'argocd.bufio.cn'
+    ARGOCD_CREDENTIAL_ID = 'argo-yes'
+    ARGOCD_PROJECT_NAME = 'yesglasses-helm'
+    KUBE_NAMESPACE = 'yesglasses'
+    KUBE_DEPLOYMENT = 'example'
+    KUBE_SERVER_URL = 'https://1CA5A75E85179A7207B98499DDE12A4A.gr7.ap-southeast-1.eks.amazonaws.com'
+    KUBE_SERVER_CREDENTIAL_ID = 'jenkins-token'
+  }
+}
