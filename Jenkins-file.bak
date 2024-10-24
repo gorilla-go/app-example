@@ -111,9 +111,7 @@ setYaml("$HELM_VALUE_FILE", {
                           git push origin $HELM_GIT_BRANCH
                           """
           }
-
         }
-
       }
     }
 
